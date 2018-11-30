@@ -1,0 +1,33 @@
+3 semaforos - R S A
+mempartilhada c tamanho p 1 mensage
+Buffer onde cabe mensagem
+    serve para o server//cliente dizer qual a mensagem ao outro
+
+faz open no server 
+cria tudo e semaforo R = 1
+
+depois server receive
+faz dow no S c o sem S a 0, fica a espera, ate que envie qql coisa o cliente
+
+open cliente
+send cliente
+    coloca msgcliente no buffer 
+    down no R
+    copia mensagem do buffer
+    faz up no S e acorda o servidor
+
+cliente receive
+    dow no A (block pq tava a 0)
+
+server down no S (poe tudo a 0)
+pega na mensagem no buffer e mete na mem local
+transforma para upper case
+manda de volta, escreve p cima no buffer
+coloca a resposta no buffer e faz down no A
+
+o cliente faz down no A e vai ler a resposta
+copia p a mem local a upper msg e faz down no R 
+
+R Request cliente fica a espera de nova oportunidade para fazer coisas
+A Answer cliente espera resposta
+S Server Servidor fica block a espera de qql coisa para ler
