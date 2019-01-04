@@ -125,16 +125,16 @@ int main (int argc, char *argv[])
  */
 static void waitForOrder ()
 {
-
     //TODO insert your code here
-     
+    //This semDown means he is no longer waiting for Order
+    semDown(semgid, sh->waitOrder);  
+
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
         perror ("error on the up operation for semaphore access (PT)");
         exit (EXIT_FAILURE);
     }
 
     //TODO insert your code here
-    
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
         perror ("error on the up operation for semaphore access (PT)");
@@ -142,6 +142,9 @@ static void waitForOrder ()
     }
 
     //TODO insert your code here
+    //This semUp means he  waiting for Order again
+    semUp(semgid, sh->waitOrder);    
+
 }
 
 /**
@@ -157,6 +160,7 @@ static void processOrder ()
     usleep((unsigned int) floor ((MAXCOOK * random ()) / RAND_MAX + 100.0));
 
     //TODO insert your code here
+   semDown(semgid, sh->orderReceived);
 
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
         perror ("error on the up operation for semaphore access (PT)");
