@@ -147,7 +147,7 @@ static request waitForClientOrChef()
     /* enter critical region */
     if (semDown(semgid, sh->mutex) == -1)
     {
-        perror("error on the up operation for semaphore access (WT)");
+        perror("error on the down operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
 
@@ -158,7 +158,7 @@ static request waitForClientOrChef()
 
     if (semUp(semgid, sh->mutex) == -1)
     {
-        perror("error on the down operation for semaphore access (WT)");
+        perror("error on the up operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
     /* exit critical region */
@@ -167,29 +167,35 @@ static request waitForClientOrChef()
     // Down on waiterRequest - semaphore to waiter wait for requests
     if (semDown(semgid, sh->waiterRequest) == -1)
     {
-        perror("error on the up operation for semaphore access (WT)");
+        perror("error on the down operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
 
     /* enter critical region */
     if (semDown(semgid, sh->mutex) == -1)
     {
-        perror("error on the up operation for semaphore access (WT)");
+        perror("error on the down operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
-    // STATES & ETC
+    // he must update req
 
     if (semUp(semgid, sh->mutex) == -1)
     {
-        perror("error on the down operation for semaphore access (WT)");
+        perror("error on the up operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
     /* exit critical region */
 
     // TODO insert your code here
+    if (semUp(semgid, sh->waiterRequestPossible) == -1)
+    {
+        perror("error on the up operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
 
+    // we must return what they requested
     return req;
 }
 
@@ -214,8 +220,8 @@ static void informChef(int n)
     // TODO insert your code here
     // foodOrder is used to inform chef of food request
     sh->fSt.foodOrder = 1;
-    sh->fSt.st.groupStat[MAXGROUPS] = WAIT_FOR_FOOD;
-    
+    sh->fSt.st.groupStat[sh->fSt.nGroups] = WAIT_FOR_FOOD;
+    sh->fSt.st.waiterStat = INFORM_CHEF;
     saveState(nFic, &sh->fSt);
 
     if (semUp(semgid, sh->mutex) == -1)
@@ -226,6 +232,22 @@ static void informChef(int n)
     /* exit critical region */
 
     // TODO insert your code here
+    if (semDown(semgid, sh->orderReceived) == -1)
+    {
+        perror("error on the down operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
+    if (semUp(semgid, sh->requestReceived[----------]) == -1)
+    {
+        perror("error on the up operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
+    // The chef will down this semaphore
+    if (semUp(semgid, sh->waitOrder) == -1)
+    {
+        perror("error on the up operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /**
@@ -239,17 +261,31 @@ static void informChef(int n)
 
 static void takeFoodToTable(int n)
 {
+    /* enter critical region */
     if (semDown(semgid, sh->mutex) == -1)
-    { /* enter critical region */
-        perror("error on the up operation for semaphore access (WT)");
+    {
+        perror("error on the down operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
+    // Update waiter stat
+    // Inform groups that food is available
+    sh->fSt.st.waiterStat = TAKE_TO_TABLE;
 
-    if (semUp(semgid, sh->mutex) == -1)
-    { /* exit critical region */
-        perror("error on the down operation for semaphore access (WT)");
+    sh->fSt.st.groupStat = EAT;
+    saveState(nFic, &sh->fSt);
+    
+    if (semUp(semgid, sh->foodArrived[-----]) == -1)
+    {
+        perror("error on the up operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
+
+    if (semUp(semgid, sh->mutex) == -1)
+    {
+        perror("error on the up operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
+    /* exit critical region */
 }
