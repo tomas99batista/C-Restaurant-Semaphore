@@ -133,8 +133,7 @@ int main(int argc, char *argv[])
  */
 static void waitForOrder()
 {
-    //TODO insert your code here
-    //This semDown means he is no longer waiting for Order
+    //This semDown means he is no longer waiting for orders
     //We Down the semaphore to be not possible to receive any more order
     if (semDown(semgid, sh->waitOrder) == -1)
     {
@@ -148,9 +147,8 @@ static void waitForOrder()
         exit(EXIT_FAILURE);
     }
 
-    //TODO insert your code here
-    // Here the chef status must be updated
-    //and must save the internal state
+    //  Here the chef status must be updated
+    //  and must save the internal state
     sh->fSt.foodOrder = 0;
     sh->fSt.st.chefStat = COOK;
     lastGroup = sh->fSt.foodGroup;
@@ -162,7 +160,6 @@ static void waitForOrder()
         exit(EXIT_FAILURE);
     }
 
-    //TODO insert your code here
     //This semUp means he  waiting for order again
     // We up the semaphore to be possible to receive orders again
     if (semUp(semgid, sh->orderReceived) == -1)
@@ -184,7 +181,6 @@ static void processOrder()
 {
     usleep((unsigned int)floor((MAXCOOK * random()) / RAND_MAX + 100.0));
 
-    //TODO insert your code here
     // The chef received the order
     if (semDown(semgid, sh->waiterRequestPossible) == -1)
     {
@@ -198,9 +194,8 @@ static void processOrder()
         exit(EXIT_FAILURE);
     }
 
-    //TODO insert your code here
     // Here we must tell that the fode is ready
-    // and the chef can now rest
+    // and the chef can now wait for + orders
     // and then save the state
     sh->fSt.waiterRequest.reqType = FOODREADY;
     sh->fSt.st.chefStat = WAIT_FOR_ORDER;
@@ -213,7 +208,6 @@ static void processOrder()
         exit(EXIT_FAILURE);
     }
 
-    //TODO insert your code here
     //The chef must inform that the food is ready to take
     if (semUp(semgid, sh->waiterRequest) == -1)
     {
