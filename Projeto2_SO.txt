@@ -21,7 +21,7 @@ Atribuir mesas por ordem de chegada, 12345, etc, decidir
 
 Podemos fazer cada modulo de cada vez
 
-Começar chefe que é o + facil
+ComeÃ§ar chefe que Ã© o + facil
 
 CONTAR COM DEADLOCKS E FAZER TESTES E PERCEBER PQEQ ELE PAROU OU NAO ESTA A DAR SYNC
 
@@ -37,8 +37,14 @@ Rececionista diz que pode sair
 
 ./run corre 1000x garantindo que assim nao tem deadlocks
 
-Começar chef, começar c 1 grupo, qto menos interações melhor
+ComeÃ§ar chef, comeÃ§ar c 1 grupo, qto menos interaÃ§Ãµes melhor
 Mudar num grupos e manter waiting time
+
+Waiter faz pedido -> foodOrder(value) = 1;
+		     foodGroup(value) = N (nÂº de pessoas)
+
+Chef ao fim de receber pedido -> foodOrder(value) = 0
+			         foodGroup(value) = 1
 
 Qdo 1 grupo pede 1 mesa os outros tem q esperar
 SEMAFOROSSSSSSSSSSSSSS
@@ -47,8 +53,8 @@ mutex p garantir acesso regiao critica (muito longa e c mts zonas mas e partilha
 
 DOXYGEN - gera merdas a partir dos comentarios, ver o html dps (so funciona em html) firefox html/index.html > Gera este file
 
-começar por tentar perceber como cada semaforo vai ser usado
-ver as descriçoes, complementar as descriçoes, ver quando e usado
+comeÃ§ar por tentar perceber como cada semaforo vai ser usado
+ver as descriÃ§oes, complementar as descriÃ§oes, ver quando e usado
 valor inicial quem faz up quem faz down
 
 ponteiro p memoria partilhada
