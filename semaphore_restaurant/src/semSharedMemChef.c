@@ -153,6 +153,7 @@ static void waitForOrder()
     //and must save the internal state
     sh->fSt.foodOrder = 0;
     sh->fSt.st.chefStat = COOK;
+    lastGroup = sh->fSt.foodGroup;
     saveState(nFic, &sh->fSt);
 
     if (semUp(semgid, sh->mutex) == -1)
@@ -164,7 +165,7 @@ static void waitForOrder()
     //TODO insert your code here
     //This semUp means he  waiting for order again
     // We up the semaphore to be possible to receive orders again
-    if (semUp(semgid, sh->waitOrder) == -1)
+    if (semUp(semgid, sh->orderReceived) == -1)
     {
         perror("error on the up operation for semaphore access (PT)");
         exit(EXIT_FAILURE);
@@ -185,7 +186,7 @@ static void processOrder()
 
     //TODO insert your code here
     // The chef received the order
-    if (semDown(semgid, sh->orderReceived) == -1)
+    if (semDown(semgid, sh->waiterRequestPossible) == -1)
     {
         perror("error on the up operation for semaphore access (PT)");
         exit(EXIT_FAILURE);
@@ -201,8 +202,9 @@ static void processOrder()
     // Here we must tell that the fode is ready
     // and the chef can now rest
     // and then save the state
-    sh->fSt.foodOrder ????;
-    sh->fSt.st.chefStat = REST;
+    sh->fSt.waiterRequest.reqType = FOODREADY;
+    sh->fSt.st.chefStat = WAIT_FOR_ORDER;
+    sh->fSt.waiterRequest.reqGroup = lastGroup;
     saveState(nFic, &sh->fSt);
 
     if (semUp(semgid, sh->mutex) == -1)
@@ -213,7 +215,7 @@ static void processOrder()
 
     //TODO insert your code here
     //The chef must inform that the food is ready to take
-    if (semUp(semgid, sh->orderReceived) == -1)
+    if (semUp(semgid, sh->waiterRequest) == -1)
     {
         perror("error on the up operation for semaphore access (PT)");
         exit(EXIT_FAILURE);
