@@ -44,66 +44,71 @@ static int semgid;
 /** \brief pointer to shared memory region */
 static SHARED_DATA *sh;
 
-static void goToRestaurant (int id);
-static void checkInAtReception (int id);
-static void orderFood (int id);
-static void waitFood (int id);
-static void eat (int id);
-static void checkOutAtReception (int id);
-
+static void goToRestaurant(int id);
+static void checkInAtReception(int id);
+static void orderFood(int id);
+static void waitFood(int id);
+static void eat(int id);
+static void checkOutAtReception(int id);
 
 /**
  *  \brief Main program.
  *
  *  Its role is to generate the life cycle of one of intervening entities in the problem: the group.
  */
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    int key;                                         /*access key to shared memory and semaphore set */
-    char *tinp;                                                    /* numerical parameters test flag */
+    int key;    /*access key to shared memory and semaphore set */
+    char *tinp; /* numerical parameters test flag */
     int n;
 
     /* validation of command line parameters */
-    if (argc != 5) { 
-        freopen ("error_GR", "a", stderr);
-        fprintf (stderr, "Number of parameters is incorrect!\n");
+    if (argc != 5)
+    {
+        freopen("error_GR", "a", stderr);
+        fprintf(stderr, "Number of parameters is incorrect!\n");
         return EXIT_FAILURE;
     }
-    else {
-     //  freopen (argv[4], "w", stderr);
-       setbuf(stderr,NULL);
+    else
+    {
+        //  freopen (argv[4], "w", stderr);
+        setbuf(stderr, NULL);
     }
 
-    n = (unsigned int) strtol (argv[1], &tinp, 0);
-    if ((*tinp != '\0') || (n >= MAXGROUPS )) { 
-        fprintf (stderr, "Group process identification is wrong!\n");
+    n = (unsigned int)strtol(argv[1], &tinp, 0);
+    if ((*tinp != '\0') || (n >= MAXGROUPS))
+    {
+        fprintf(stderr, "Group process identification is wrong!\n");
         return EXIT_FAILURE;
     }
-    strcpy (nFic, argv[2]);
-    key = (unsigned int) strtol (argv[3], &tinp, 0);
-    if (*tinp != '\0') { 
-        fprintf (stderr, "Error on the access key communication!\n");
+    strcpy(nFic, argv[2]);
+    key = (unsigned int)strtol(argv[3], &tinp, 0);
+    if (*tinp != '\0')
+    {
+        fprintf(stderr, "Error on the access key communication!\n");
         return EXIT_FAILURE;
     }
 
     /* connection to the semaphore set and the shared memory region and mapping the shared region onto the
        process address space */
-    if ((semgid = semConnect (key)) == -1) { 
-        perror ("error on connecting to the semaphore set");
+    if ((semgid = semConnect(key)) == -1)
+    {
+        perror("error on connecting to the semaphore set");
         return EXIT_FAILURE;
     }
-    if ((shmid = shmemConnect (key)) == -1) { 
-        perror ("error on connecting to the shared memory region");
+    if ((shmid = shmemConnect(key)) == -1)
+    {
+        perror("error on connecting to the shared memory region");
         return EXIT_FAILURE;
     }
-    if (shmemAttach (shmid, (void **) &sh) == -1) { 
-        perror ("error on mapping the shared region on the process address space");
+    if (shmemAttach(shmid, (void **)&sh) == -1)
+    {
+        perror("error on mapping the shared region on the process address space");
         return EXIT_FAILURE;
     }
 
     /* initialize random generator */
-    srandom ((unsigned int) getpid ());                                                 
-
+    srandom((unsigned int)getpid());
 
     /* simulation of the life cycle of the group */
     goToRestaurant(n);
@@ -114,9 +119,11 @@ int main (int argc, char *argv[])
     checkOutAtReception(n);
 
     /* unmapping the shared region off the process address space */
-    if (shmemDettach (sh) == -1) {
-        perror ("error on unmapping the shared region off the process address space");
-        return EXIT_FAILURE;;
+    if (shmemDettach(sh) == -1)
+    {
+        perror("error on unmapping the shared region off the process address space");
+        return EXIT_FAILURE;
+        ;
     }
 
     return EXIT_SUCCESS;
@@ -131,15 +138,16 @@ int main (int argc, char *argv[])
  */
 static double normalRand(double stddev)
 {
-   int i;
+    int i;
 
-   double r=0.0;
-   for (i=0;i<12;i++) {
-       r += random()/(RAND_MAX+1.0);
-   }
-   r -= 6.0;
+    double r = 0.0;
+    for (i = 0; i < 12; i++)
+    {
+        r += random() / (RAND_MAX + 1.0);
+    }
+    r -= 6.0;
 
-   return r*stddev;
+    return r * stddev;
 }
 
 /**
@@ -149,12 +157,13 @@ static double normalRand(double stddev)
  *
  *  \param id group id
  */
-static void goToRestaurant (int id)
+static void goToRestaurant(int id)
 {
     double startTime = sh->fSt.startTime[id] + normalRand(STARTDEV);
-    
-    if (startTime > 0.0) {
-        usleep((unsigned int) startTime );
+
+    if (startTime > 0.0)
+    {
+        usleep((unsigned int)startTime);
     }
 }
 
@@ -165,12 +174,13 @@ static void goToRestaurant (int id)
  *
  *  \param id group id
  */
-static void eat (int id)
+static void eat(int id)
 {
     double eatTime = sh->fSt.eatTime[id] + normalRand(EATDEV);
-    
-    if (eatTime > 0.0) {
-        usleep((unsigned int) eatTime );
+
+    if (eatTime > 0.0)
+    {
+        usleep((unsigned int)eatTime);
     }
 }
 
@@ -189,21 +199,37 @@ static void eat (int id)
 static void checkInAtReception(int id)
 {
     // TODO insert your code here
+    if (semDown(semgid, sh->receptionistRequestPossible) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    }
 
-    if (semDown (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    /* enter critical region */
+    if (semDown(semgid, sh->mutex) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
+    //Internal state
+    sh->fSt.st.groupStat[id] = ATRECEPTION;
+    saveState(nFic, &sh->fSt);
 
-    if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
-        perror ("error on the up operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    if (semUp(semgid, sh->mutex) == -1)
+    {
+        perror("error on the up operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
+    /* exit critical region */
 
     // TODO insert your code here
-
+    if (semUp(semgid, sh->receptionistReq) == -1)
+    {
+        perror("error on the up operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /**
@@ -216,23 +242,44 @@ static void checkInAtReception(int id)
  *
  *  \param id group id
  */
-static void orderFood (int id)
+static void orderFood(int id)
 {
     // TODO insert your code here
-
-    if (semDown (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    if (semDown(semgid, sh->requestReceived[id]) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    }
+    if (semDown(semgid, sh->waiterRequestPossible) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    }
+    /* enter critical region */
+    if (semDown(semgid, sh->mutex) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
+    sh->fSt.st.groupStat[id] = FOOD_REQUEST;
+    sh->fSt.foodOrder = 1;  //???
+    saveState(nFic, &sh->fSt);
 
-    if (semUp (semgid, sh->mutex) == -1) {                                                     /* exit critical region */
-        perror ("error on the up operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    if (semUp(semgid, sh->mutex) == -1)
+    {
+        perror("error on the up operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
+    /* exit critical region */
 
     // TODO insert your code here
+    if (semUp(semgid, sh->waiterRequest) == -1)
+    {
+        perror("error on the up operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /**
@@ -244,33 +291,48 @@ static void orderFood (int id)
  *
  *  \param id group id
  */
-static void waitFood (int id)
+static void waitFood(int id)
 {
-    if (semDown (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    if (semDown(semgid, sh->mutex) == -1)
+    { /* enter critical region */
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
+    sh->fSt.st.groupStat[id] = WAIT_FOR_FOOD;
+    saveState(nFic, &sh->fSt);
 
-    if (semUp (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    if (semUp(semgid, sh->mutex) == -1)
+    { /* enter critical region */
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
+    if (semDown(semgid, sh->foodArrived[id]) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    }
 
-    if (semDown (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    /* enter critical region */
+    if (semDown(semgid, sh->mutex) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
+    sh->fSt.st.groupStat[id] = EAT;
+    saveState(nFic, &sh->fSt);
 
-    if (semUp (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    if (semUp(semgid, sh->mutex) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
+    /* enter critical region */
 }
 
 /**
@@ -284,35 +346,54 @@ static void waitFood (int id)
  *
  *  \param id group id
  */
-static void checkOutAtReception (int id)
+static void checkOutAtReception(int id)
 {
     // TODO insert your code here
+    if (semDown(semgid, sh->receptionistRequestPossible) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    }
 
-    if (semDown (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    /* enter critical region */
+    if (semDown(semgid, sh->mutex) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
+    sh->fSt.st.groupStat[id] = CHECKOUT;
+    saveState(nFic, &sh->fSt);
 
-    if (semUp (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    if (semUp(semgid, sh->mutex) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    } /* exit critical region */
+
+    // TODO insert your code here
+    if (semDown(semgid, sh->tableDone[id]) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
+    }
+
+    /* enter critical region */
+    if (semDown(semgid, sh->mutex) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
 
     // TODO insert your code here
+    sh->fSt.st.groupStat[id] = LEAVING;
+    saveState(nFic, &sh->fSt);
 
-    if (semDown (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
+    if (semUp(semgid, sh->mutex) == -1)
+    {
+        perror("error on the down operation for semaphore access (CT)");
+        exit(EXIT_FAILURE);
     }
-
-    // TODO insert your code here
-
-    if (semUp (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
-        perror ("error on the down operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
-    }
-
+    /* exit critical region */
 }
-
