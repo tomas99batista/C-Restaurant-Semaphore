@@ -189,9 +189,9 @@ static int decideNextGroup()
 static request waitForGroup()
 {
     request ret;
-
+    /* enter critical region */
     if (semDown(semgid, sh->mutex) == -1)
-    { /* enter critical region */
+    {
         perror("error on the up operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
@@ -199,15 +199,22 @@ static request waitForGroup()
     // TODO insert your code here
 
     if (semUp(semgid, sh->mutex) == -1)
-    { /* exit critical region */
+    {
+        perror("error on the down operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
+    /* exit critical region */
+
+    // TODO insert your code here
+    if (semDown(semgid, sh->receptionistReq) == -1)
+    {
         perror("error on the down operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
 
-    // TODO insert your code here
-
+    /* enter critical region */
     if (semDown(semgid, sh->mutex) == -1)
-    { /* enter critical region */
+    {
         perror("error on the up operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
@@ -215,10 +222,11 @@ static request waitForGroup()
     // TODO insert your code here
 
     if (semUp(semgid, sh->mutex) == -1)
-    { /* exit critical region */
+    {
         perror("error on the down operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
+    /* exit critical region */
 
     // TODO insert your code here
 
