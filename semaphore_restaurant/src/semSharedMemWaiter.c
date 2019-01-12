@@ -152,9 +152,6 @@ static request waitForClientOrChef()
         exit(EXIT_FAILURE);
     }
 
-    // TODO insert your code here
-    // The waiter is accepting requests
-    //Changes the state
     sh->fSt.st.waiterStat = WAIT_FOR_REQUEST;
     saveState(nFic, &sh->fSt); //Saves the state
 
@@ -165,8 +162,6 @@ static request waitForClientOrChef()
     }
     /* exit critical region */
 
-    // TODO insert your code here
-    // Down on waiterRequest - semaphore to waiter wait for requests
     if (semDown(semgid, sh->waiterRequest) == -1)
     {
         perror("error on the down operation for semaphore access (WT)");
@@ -180,8 +175,6 @@ static request waitForClientOrChef()
         exit(EXIT_FAILURE);
     }
 
-    // TODO insert your code here
-    // he must update req
     if (sh->fSt.waiterRequest.reqType == FOODREQ)
     {
         req.reqType = FOODREQ;
@@ -200,14 +193,12 @@ static request waitForClientOrChef()
     }
     /* exit critical region */
 
-    // TODO insert your code here
     if (semUp(semgid, sh->waiterRequestPossible) == -1)
     {
         perror("error on the up operation for semaphore access (WT)");
         exit(EXIT_FAILURE);
     }
 
-    // we must return what they requested
     return req;
 }
 
@@ -229,8 +220,6 @@ static void informChef(int n)
         exit(EXIT_FAILURE);
     }
 
-    // TODO insert your code here
-    // foodOrder is used to inform chef of food request
     sh->fSt.foodOrder = 1;
     sh->fSt.st.waiterStat = INFORM_CHEF;
     sh->fSt.foodGroup = n;
@@ -249,8 +238,6 @@ static void informChef(int n)
     }
     /* exit critical region */
 
-    // TODO insert your code here
-    // The chef will down this semaphore
     if (semUp(semgid, sh->waitOrder) == -1)
     {
         perror("error on the up operation for semaphore access (WT)");
@@ -282,9 +269,6 @@ static void takeFoodToTable(int n)
         exit(EXIT_FAILURE);
     }
 
-    // TODO insert your code here
-    // Update waiter stat
-    // Inform groups that food is available
     sh->fSt.st.waiterStat = TAKE_TO_TABLE;
     sh->fSt.foodGroup = n;
     saveState(nFic, &sh->fSt);
